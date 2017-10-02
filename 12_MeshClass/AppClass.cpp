@@ -8,12 +8,13 @@ void Application::InitVariables(void)
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
 
 	//Make MyMesh object
-	m_pMesh = new MyMesh();
-	m_pMesh->GenerateCube(2.0f, C_BROWN);
+	m_pMesh = new MyMesh[48];
 
-	//Make MyMesh object
-	m_pMesh1 = new MyMesh();
-	m_pMesh1->GenerateCube(1.0f, C_WHITE);
+	for (uint i = 0; i < 48; ++i)
+	{
+		m_pMesh[i].GenerateCube(1.0f, C_BROWN);
+	}
+	
 }
 void Application::Update(void)
 {
@@ -30,10 +31,29 @@ void Application::Display(void)
 {
 	// Clear the screen
 	ClearScreen();
-
-	m_pMesh->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), ToMatrix4(m_qArcBall));
-	m_pMesh1->Render(m_pCameraMngr->GetProjectionMatrix(), m_pCameraMngr->GetViewMatrix(), glm::translate(vector3( 3.0f, 0.0f, 0.0f)));
 		
+	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
+	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
+	vector3 v3Position(3, -1, 0);
+	static matrix4 m4Model;
+
+	m4Model *= glm::translate(IDENTITY_M4, vector3(0.1f, 0.0f, 0.0f));
+
+	m_pMesh[0].Render(m4Projection, m4View, m4Model);
+	m_pMesh[1].Render(m4Projection, m4View, m4Model * glm::translate(IDENTITY_M4, vector3(1,0,0)));
+	m_pMesh[2].Render(m4Projection, m4View, m4Model * glm::translate(IDENTITY_M4, vector3(2, 0, 0)));
+	
+	for (int i = 0; i < 11; i++)
+	{
+		int numUsed = 0;
+		switch (i)
+		{
+		case 0:
+			m_pMesh[numUsed].Render(m4Projection, m4View, m4Model * glm::translate(IDENTITY_M4, vector3(3, 4, 0)));
+			m_pMesh[numUsed].Render(m4Projection, m4View, m4Model * glm::translate(IDENTITY_M4, vector3(3, 4, 0)));
+		}
+	}
+
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 	
@@ -53,7 +73,7 @@ void Application::Release(void)
 {
 	if (m_pMesh != nullptr)
 	{
-		delete m_pMesh;
+		delete[] m_pMesh;
 		m_pMesh = nullptr;
 	}
 	SafeDelete(m_pMesh1);
