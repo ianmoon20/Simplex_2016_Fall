@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	//m_sProgrammer = "Ian Moon - imm3350@g.rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -56,20 +56,46 @@ void Application::Display(void)
 
 	//calculate the current position
 	vector3 v3CurrentPos;
-	
-
 
 
 
 	//your code goes here
 	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	//-------------------
 	
+	//Getting the desired time for moving between two spots
+	float travelTime = 5.0f;
+	float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
 
+	//Set the current position to the first spot on the route
+	static uint currentStop = 0;
+	vector3 v3StartPos = m_stopsList[currentStop];
+	v3CurrentPos = m_stopsList[currentStop];
 
+	//Get a destination (Making sure to wrap back to the beginning)
+	vector3 v3NextStop = m_stopsList[(currentStop + 1) % m_stopsList.size()];
+
+	//Calculate a new current position based on the time remaining between the stops
+	v3CurrentPos = glm::lerp(v3StartPos, v3NextStop, travelPercentage);
 	
+	//Move the model to the new position
 	matrix4 m4Model = glm::translate(v3CurrentPos);
+
 	m_pModel->SetModelMatrix(m4Model);
+
+	//Seeing if the destination has been reached
+	if (travelPercentage >= 1.0f)
+	{
+		//Set the current stop to our destination
+		currentStop++;
+
+		//Resetting timer
+		fTimer = m_pSystem->GetDeltaTime(uClock);
+
+		//Making sure the stop is within the array
+		currentStop = currentStop % m_stopsList.size();
+	}
+
+	//-------------------
 
 	m_pMeshMngr->Print("\nTimer: ");//Add a line on top
 	m_pMeshMngr->PrintLine(std::to_string(fTimer), C_YELLOW);
