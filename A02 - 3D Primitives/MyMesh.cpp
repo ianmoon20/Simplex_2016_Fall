@@ -272,11 +272,30 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	if (a_nSubdivisions > 360)
 		a_nSubdivisions = 360;
 
+	
+	
+
+
 	Release();
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	for (int i = 1; i < a_nSubdivisions + 1; i++)
+	{
+		//Drawing a base
+		vector3 point0(0, 0, 0);
+		vector3 point1(a_fRadius*cos(((2 * PI) /a_nSubdivisions)*i), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point2(a_fRadius*cos(((2 * PI) /a_nSubdivisions)*(i + 1)), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+		
+		//Cone Tip
+		vector3 point3(0, a_fHeight, 0);
+
+		AddTri(point1, point2, point3);
+		AddTri(point0, point1, point2);
+		
+	}
+
+
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +319,23 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	for (int i = 1; i < a_nSubdivisions + 1; i++)
+	{
+		vector3 point0(0, 0, 0);
+		vector3 point1(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*i), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point2(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+		vector3 point3(0, a_fHeight, 0);
+		vector3 point4(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*i), a_fHeight, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point5(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), a_fHeight, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+		
+		AddTri(point0, point1, point2);
+		AddTri(point3, point4, point5);
+
+		AddQuad(point1, point2, point4, point5);
+
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +365,28 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	for (int i = 1; i < a_nSubdivisions + 1; i++)
+	{
+		//Inner Circle
+		vector3 point0(a_fInnerRadius*cos(((2 * PI) / a_nSubdivisions)*i), 0, a_fInnerRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point1(a_fInnerRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), 0, a_fInnerRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+		vector3 point2(a_fInnerRadius*cos(((2 * PI) / a_nSubdivisions)*i), a_fHeight, a_fInnerRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point3(a_fInnerRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), a_fHeight, a_fInnerRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+		//Outer Circle
+		vector3 point4(a_fOuterRadius*cos(((2 * PI) / a_nSubdivisions)*i), 0, a_fOuterRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point5(a_fOuterRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), 0, a_fOuterRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+		vector3 point6(a_fOuterRadius*cos(((2 * PI) / a_nSubdivisions)*i), a_fHeight, a_fOuterRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point7(a_fOuterRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), a_fHeight, a_fOuterRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+
+		AddQuad(point0, point1, point2, point3);
+		AddQuad(point2, point3, point6, point7);
+		AddQuad(point4, point5, point6, point7);
+		AddQuad(point0, point1, point4, point5);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -387,7 +443,15 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	for (int i = 1; i < a_nSubdivisions + 1; i++)
+	{
+		vector3 point0(0, 0, 0);
+		vector3 point1(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*i), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*i));
+		vector3 point2(a_fRadius*cos(((2 * PI) / a_nSubdivisions)*(i + 1)), 0, a_fRadius*sin(((2 * PI) / a_nSubdivisions)*(i + 1)));
+
+
+		AddQuad(point0, point1, point2, point3);
+	}
 	// -------------------------------
 
 	// Adding information about color

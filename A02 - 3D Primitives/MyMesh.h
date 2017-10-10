@@ -1,6 +1,6 @@
 /*----------------------------------------------
-Programmer: Alberto Bobadilla (labigm@gmail.com)
-Date: 2017/05
+Programmer: Ian Moon (imm3350@g.rit.edu)
+Date: 2017/10
 ----------------------------------------------*/
 #ifndef __MYMESH_H_
 #define __MYMESH_H_
