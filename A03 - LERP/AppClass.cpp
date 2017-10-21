@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Ian Moon - imm3350@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -26,6 +26,7 @@ void Application::InitVariables(void)
 		m_uOrbits = 7;
 
 	float fSize = 1.0f; //initial size of orbits
+	float fRadius = .95f; //initial orbit radius
 
 	//creating a color using the spectrum 
 	uint uColor = 650; //650 is Red
@@ -38,8 +39,10 @@ void Application::InitVariables(void)
 	for (uint i = uSides; i < m_uOrbits + uSides; i++)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
-		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fRadius, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+		stopsList.push_back(vector3(fSize, fSize, fSize));
 		fSize += 0.5f; //increment the size for the next orbit
+		fRadius += 0.5f;
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 	}
 }
@@ -72,12 +75,48 @@ void Application::Display(void)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
+		////Get a timer
+		//static float fTimer = 0;	//store the new timer
+		//static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
+		//fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
+
 		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
+		vector3 v3CurrentPos = stopsList[i];
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+
+		////Getting the desired time for moving between two spots
+		//float travelTime = 5.0f;
+		//float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
+
+		////Set the current position to the first spot on the route
+		//static uint currentStop = 0;
+		//vector3 v3StartPos = stopsList[currentStop];
+		//v3CurrentPos = stopsList[currentStop];
+
+		////Get a destination (Making sure to wrap back to the beginning)
+		//vector3 v3NextStop = stopsList[(currentStop + 1) % stopsList.size()];
+
+		////Calculate a new current position based on the time remaining between the stops
+		//v3CurrentPos = glm::lerp(v3StartPos, v3NextStop, travelPercentage);
+
+		////Move the model to the new position
+		//m4Model = glm::translate(v3CurrentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+
+		////Seeing if the destination has been reached
+		//if (travelPercentage >= 1.0f)
+		//{
+		//	//Set the current stop to our destination
+		//	currentStop++;
+
+		//	//Resetting timer
+		//	fTimer = m_pSystem->GetDeltaTime(uClock);
+
+		//	//Making sure the stop is within the array
+		//	currentStop = currentStop % stopsList.size();
+		//}
 	}
 
 	//render list call
