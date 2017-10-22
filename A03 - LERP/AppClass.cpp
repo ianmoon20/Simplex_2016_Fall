@@ -82,22 +82,21 @@ void Application::Display(void)
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
-		uint sideNum = 2 + i;
-
-		//Starting positions
-		static uint currPosition = (5 * i + i*i) / 2;
-		uint startPosition = currPosition;
-
-
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
+		static uint adjustment = 0;
+		static uint numSides = 3;
+
+		//current position
+		uint currPosition = ((5 * i + i*i) / 2) + adjustment;
+
 		//Get a timer
-		static float fTimer = 0;	//store the new timer
+		static float fTimer = 0; //store the new timer
 		static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
 		fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 		//calculate the current position
-		vector3 v3CurrentPos = stopsList[startPosition];
+		vector3 v3CurrentPos = stopsList[currPosition];
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//Getting the desired time for moving between two spots
@@ -105,11 +104,10 @@ void Application::Display(void)
 		float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
 
 		//Set the current position to the first spot on the route
-		vector3 v3StartPos = stopsList[startPosition];
-		v3CurrentPos = stopsList[startPosition];
+		v3CurrentPos = stopsList[currPosition];
 
 		//Get a destination (Making sure to wrap back to the beginning)
-		vector3 v3NextStop = stopsList[(startPosition + 1) % stopsList.size()];
+		vector3 v3NextStop = stopsList[(currPosition + 1)];
 
 		//Calculate a new current position based on the time remaining between the stops
 		v3CurrentPos = glm::lerp(v3CurrentPos, v3NextStop, travelPercentage);
@@ -124,13 +122,12 @@ void Application::Display(void)
 		if (travelPercentage >= 1.0f)
 		{
 			//Set the current stop to our destination
-			currPosition++;
+			adjustment++;
+
+			adjustment = adjustment % numSides;
 
 			//Resetting timer
 			fTimer = m_pSystem->GetDeltaTime(uClock);
-
-			//Making sure the stop is within the array
-			currPosition = currPosition % stopsList.size());
 		}
 	}
 
