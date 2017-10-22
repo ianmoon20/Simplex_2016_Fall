@@ -82,31 +82,29 @@ void Application::Display(void)
 	*/
 	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
 
-	// draw a shapes
+	//For each orbit
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
+		//For each point
 		for (uint j = 0; j < stopsList[i].size(); j++)
 		{
 			//current position
-			uint currPosition = j;
+			static uint currPosition = 0;
 
 			//Get a timer
 			static float fTimer = 0; //store the new timer
 			static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
 			fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
-
-													   //calculate the current position
-			vector3 v3CurrentPos = stopsList[i][currPosition];
+			
+			//Set the current position to the first stop on the route
+			vector3 v3CurrentPos = stopsList[i][currPosition % stopsList[i].size()]; //calculate the current position (Making sure to wrap)
 			matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 			//Getting the desired time for moving between two spots
 			float travelTime = 1.0f;
 			float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
-
-			//Set the current position to the first spot on the route
-			v3CurrentPos = stopsList[i][currPosition];
 
 			//Get a destination (Making sure to wrap back to the beginning)
 			vector3 v3NextStop = stopsList[i][(currPosition + 1) % stopsList[i].size()];
@@ -115,7 +113,8 @@ void Application::Display(void)
 			v3CurrentPos = glm::lerp(v3CurrentPos, v3NextStop, travelPercentage);
 
 			//Move the model to the new position
-			m4Model = glm::translate(v3CurrentPos);
+			m4Model = glm::translate(m4Offset, v3CurrentPos);
+			m4Model = glm::rotate(m4Model, 90.0f, AXIS_X);
 
 			//draw spheres
 			m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
@@ -123,9 +122,8 @@ void Application::Display(void)
 			//Seeing if the destination has been reached
 			if (travelPercentage >= 1.0f)
 			{
+				//Increment current position
 				currPosition++;
-
-				currPosition = currPosition % stopsList[i].size();
 
 				//Resetting timer
 				fTimer = m_pSystem->GetDeltaTime(uClock);
