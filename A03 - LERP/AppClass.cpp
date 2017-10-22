@@ -36,11 +36,20 @@ void Application::InitVariables(void)
 		This part will create the orbits, it start at 3 because that is the minimum subdivisions a torus can have
 	*/
 	uint uSides = 3; //start with the minimal 3 sides
-	for (uint i = uSides; i < m_uOrbits + uSides; i++)
+	for (float i = uSides; i < m_uOrbits + uSides; i++)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fRadius, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
-		stopsList.push_back(vector3(fSize, fSize, fSize));
+		
+		//Getting the endpoints of each side on each orbit
+		for (float j = 0; j < i; j++)
+		{
+			float tubeRadius = (fSize - fRadius) / 2;
+			float x = fRadius * glm::cos((2 * PI) * (j / i));
+			float y = fRadius * glm::sin((2 * PI) * (j / i));
+			stopsList.push_back(vector3(x, y, 0));
+		}
+
 		fSize += 0.5f; //increment the size for the next orbit
 		fRadius += 0.5f;
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
@@ -73,50 +82,56 @@ void Application::Display(void)
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
+		uint sideNum = 2 + i;
+
+		//Starting positions
+		static uint currPosition = (5 * i + i*i) / 2;
+		uint startPosition = currPosition;
+
+
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
-		////Get a timer
-		//static float fTimer = 0;	//store the new timer
-		//static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
-		//fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
+		//Get a timer
+		static float fTimer = 0;	//store the new timer
+		static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
+		fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 		//calculate the current position
-		vector3 v3CurrentPos = stopsList[i];
+		vector3 v3CurrentPos = stopsList[startPosition];
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
-		////Getting the desired time for moving between two spots
-		//float travelTime = 5.0f;
-		//float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
+		//Getting the desired time for moving between two spots
+		float travelTime = 1.0f;
+		float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
 
-		////Set the current position to the first spot on the route
-		//static uint currentStop = 0;
-		//vector3 v3StartPos = stopsList[currentStop];
-		//v3CurrentPos = stopsList[currentStop];
+		//Set the current position to the first spot on the route
+		vector3 v3StartPos = stopsList[startPosition];
+		v3CurrentPos = stopsList[startPosition];
 
-		////Get a destination (Making sure to wrap back to the beginning)
-		//vector3 v3NextStop = stopsList[(currentStop + 1) % stopsList.size()];
+		//Get a destination (Making sure to wrap back to the beginning)
+		vector3 v3NextStop = stopsList[(startPosition + 1) % stopsList.size()];
 
-		////Calculate a new current position based on the time remaining between the stops
-		//v3CurrentPos = glm::lerp(v3StartPos, v3NextStop, travelPercentage);
+		//Calculate a new current position based on the time remaining between the stops
+		v3CurrentPos = glm::lerp(v3CurrentPos, v3NextStop, travelPercentage);
 
-		////Move the model to the new position
-		//m4Model = glm::translate(v3CurrentPos);
+		//Move the model to the new position
+		m4Model = glm::translate(v3CurrentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
 
-		////Seeing if the destination has been reached
-		//if (travelPercentage >= 1.0f)
-		//{
-		//	//Set the current stop to our destination
-		//	currentStop++;
+		//Seeing if the destination has been reached
+		if (travelPercentage >= 1.0f)
+		{
+			//Set the current stop to our destination
+			currPosition++;
 
-		//	//Resetting timer
-		//	fTimer = m_pSystem->GetDeltaTime(uClock);
+			//Resetting timer
+			fTimer = m_pSystem->GetDeltaTime(uClock);
 
-		//	//Making sure the stop is within the array
-		//	currentStop = currentStop % stopsList.size();
-		//}
+			//Making sure the stop is within the array
+			currPosition = currPosition % stopsList.size());
+		}
 	}
 
 	//render list call
