@@ -41,14 +41,17 @@ void Application::InitVariables(void)
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fRadius, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
 		
+		std::vector<vector3> points;
 		//Getting the endpoints of each side on each orbit
 		for (float j = 0; j < i; j++)
 		{
 			float tubeRadius = (fSize - fRadius) / 2;
 			float x = fRadius * glm::cos((2 * PI) * (j / i));
 			float y = fRadius * glm::sin((2 * PI) * (j / i));
-			stopsList.push_back(vector3(x, y, 0));
+			points.push_back(vector3(x, y, 0));
 		}
+
+		stopsList.push_back(points);
 
 		fSize += 0.5f; //increment the size for the next orbit
 		fRadius += 0.5f;
@@ -84,51 +87,49 @@ void Application::Display(void)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
-		static uint startAdjustment = 0;
-		static uint adjustment = 0;
-		static uint numSides = 2;
-
-		//current position
-		uint lastPosition = ((5 * i + i*i) / 2) + startAdjustment + numSides;
-		uint currPosition = ((5 * i + i*i) / 2) + adjustment;
-
-		//Get a timer
-		static float fTimer = 0; //store the new timer
-		static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
-		fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
-
-		//calculate the current position
-		vector3 v3CurrentPos = stopsList[currPosition % stopsList.size()];
-		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
-
-		//Getting the desired time for moving between two spots
-		float travelTime = 1.0f;
-		float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
-
-		//Set the current position to the first spot on the route
-		v3CurrentPos = stopsList[currPosition];
-
-		//Get a destination (Making sure to wrap back to the beginning)
-		vector3 v3NextStop = stopsList[(currPosition + 1)];
-
-		//Calculate a new current position based on the time remaining between the stops
-		v3CurrentPos = glm::lerp(v3CurrentPos, v3NextStop, travelPercentage);
-
-		//Move the model to the new position
-		m4Model = glm::translate(v3CurrentPos);
-
-		//draw spheres
-		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
-
-		//Seeing if the destination has been reached
-		if (travelPercentage >= 1.0f)
+		for (uint j = 0; j < stopsList[i].size(); j++)
 		{
-			adjustment++;
+			//current position
+			uint currPosition = j;
 
-			adjustment = adjustment % m_uOrbits;
+			//Get a timer
+			static float fTimer = 0; //store the new timer
+			static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
+			fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
-			//Resetting timer
-			fTimer = m_pSystem->GetDeltaTime(uClock);
+													   //calculate the current position
+			vector3 v3CurrentPos = stopsList[i][currPosition];
+			matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+
+			//Getting the desired time for moving between two spots
+			float travelTime = 1.0f;
+			float travelPercentage = MapValue(fTimer, 0.0f, travelTime, 0.0f, 1.0f);
+
+			//Set the current position to the first spot on the route
+			v3CurrentPos = stopsList[i][currPosition];
+
+			//Get a destination (Making sure to wrap back to the beginning)
+			vector3 v3NextStop = stopsList[i][(currPosition + 1) % stopsList[i].size()];
+
+			//Calculate a new current position based on the time remaining between the stops
+			v3CurrentPos = glm::lerp(v3CurrentPos, v3NextStop, travelPercentage);
+
+			//Move the model to the new position
+			m4Model = glm::translate(v3CurrentPos);
+
+			//draw spheres
+			m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+
+			//Seeing if the destination has been reached
+			if (travelPercentage >= 1.0f)
+			{
+				currPosition++;
+
+				currPosition = currPosition % stopsList[i].size();
+
+				//Resetting timer
+				fTimer = m_pSystem->GetDeltaTime(uClock);
+			}
 		}
 	}
 
