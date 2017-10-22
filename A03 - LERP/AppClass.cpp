@@ -84,10 +84,12 @@ void Application::Display(void)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
+		static uint startAdjustment = 0;
 		static uint adjustment = 0;
-		static uint numSides = 3;
+		static uint numSides = 2;
 
 		//current position
+		uint lastPosition = ((5 * i + i*i) / 2) + startAdjustment + numSides;
 		uint currPosition = ((5 * i + i*i) / 2) + adjustment;
 
 		//Get a timer
@@ -96,7 +98,7 @@ void Application::Display(void)
 		fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
 
 		//calculate the current position
-		vector3 v3CurrentPos = stopsList[currPosition];
+		vector3 v3CurrentPos = stopsList[currPosition % stopsList.size()];
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//Getting the desired time for moving between two spots
@@ -121,10 +123,9 @@ void Application::Display(void)
 		//Seeing if the destination has been reached
 		if (travelPercentage >= 1.0f)
 		{
-			//Set the current stop to our destination
 			adjustment++;
 
-			adjustment = adjustment % numSides;
+			adjustment = adjustment % m_uOrbits;
 
 			//Resetting timer
 			fTimer = m_pSystem->GetDeltaTime(uClock);
