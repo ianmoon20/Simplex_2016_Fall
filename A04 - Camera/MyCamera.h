@@ -167,6 +167,15 @@ public:
 	*/
 	void SetVerticalPlanes(vector2 a_v2Vertical);
 
+	//Movement Methods
+	void MoveForward(float speed);
+	void MoveSideways(float speed);
+	void MoveVertical(float speed);
+
+	//Rotation Methods
+	void ChangePitch(float speed);
+	void ChangeYaw(float speed);
+
 	/*
 	USAGE: Gets the projection matrix of the camera
 	ARGUMENTS: ---

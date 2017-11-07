@@ -31,6 +31,37 @@ void Application::Update(void)
 	//Is the arcball active?
 	ArcBall();
 
+	m_pCamera->ChangePitch(m_qArcBall.x);
+	m_pCamera->ChangeYaw(m_qArcBall.x);
+	std::cout << m_qArcBall.x;
+
+	bool bModifier = false;
+	float fSpeed = 0.01f;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
+		bModifier = true;
+
+	if (bModifier)
+		fSpeed *= 10.0f;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		m_pCamera->MoveForward(fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+		m_pCamera->MoveForward(-fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		m_pCamera->MoveSideways(-fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		m_pCamera->MoveSideways(fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+		m_pCamera->MoveVertical(-fSpeed);
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		m_pCamera->MoveVertical(fSpeed);
+
 	//Is the first person camera active?
 	CameraRotation();
 
