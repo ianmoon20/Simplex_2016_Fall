@@ -16,6 +16,11 @@ class MyCamera
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
+	quaternion m_qX = quaternion();
+	quaternion m_qY = quaternion();
+	quaternion m_qZ = quaternion();
+	quaternion m_qOrientation = quaternion();
+
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
 	float m_fFOV = 45.0f; //Field of View
@@ -173,8 +178,7 @@ public:
 	void MoveVertical(float speed);
 
 	//Rotation Methods
-	void ChangePitch(float speed);
-	void ChangeYaw(float speed);
+	void RotateCamera(float xRotation, float yRotation);
 
 	/*
 	USAGE: Gets the projection matrix of the camera
@@ -182,6 +186,9 @@ public:
 	OUTPUT: projection matrix of the camera
 	*/
 	matrix4 GetProjectionMatrix(void);
+
+	//Method for rotating the target
+	vector3 RotateTarget(vector3 target);
 
 	/*
 	USAGE: Gets the view matrix of the camera
