@@ -344,8 +344,8 @@ void Application::CameraRotation(float a_fSpeed)
 	MouseY = pt.y;
 
 	//Calculate the difference in view with the angle
-	static float fAngleX = 0.0f;
-	static float fAngleY = 0.0f;
+	float fAngleX = 0.0f;
+	float fAngleY = 0.0f;
 	float fDeltaMouse = 0.0f;
 	if (MouseX < CenterX)
 	{
@@ -369,7 +369,7 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
-	m_pCamera->RotateCamera(0.0f, fAngleY);
+	m_pCamera->RotateCamera(fAngleX, fAngleY);
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard

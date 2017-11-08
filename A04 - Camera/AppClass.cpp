@@ -31,11 +31,11 @@ void Application::Update(void)
 	//Is the arcball active?
 	ArcBall();
 
-	//Getting Keyboard input
-	ProcessKeyboard();
-
 	//Is the first person camera active?
 	CameraRotation();
+
+	//Getting Keyboard input
+	ProcessKeyboard();
 
 	//Add objects to the Manager
 	for (int j = -50; j < 50; j += 2)

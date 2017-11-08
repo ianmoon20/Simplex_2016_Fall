@@ -25,15 +25,13 @@ vector3 Simplex::MyCamera::GetPosition(void) { return m_v3Position; }
 void Simplex::MyCamera::MoveForward(float speed)
 {
 	//Moving the target and the position
-	m_v3Target.z += speed;
-	m_v3Position.z += speed;
+	m_v3Position += (glm::mat3(glm::yawPitchRoll(m_vRotation.y, m_vRotation.x, m_vRotation.z)) * vector3(0.0f, 0.0f, -1.0f)) * speed;
 }
 
 void Simplex::MyCamera::MoveSideways(float speed)
 {
 	//Moving the target and the position
-	m_v3Target.x += speed;
-	m_v3Position.x += speed;
+	m_v3Position += (glm::mat3(glm::yawPitchRoll(m_vRotation.y, m_vRotation.x, m_vRotation.z)) * vector3(1.0f, 0.0f, 0.0f)) * speed;
 }
 
 void Simplex::MyCamera::MoveVertical(float speed)
@@ -45,36 +43,30 @@ void Simplex::MyCamera::MoveVertical(float speed)
 
 void Simplex::MyCamera::RotateCamera(float xRotation, float yRotation)
 {
-	//pitch
-	m_qX = glm::angleAxis(xRotation, AXIS_X);
-	
-	//yaw
-	m_qY = glm::angleAxis(yRotation, AXIS_Y);
+	//Adding the mouse movement to the rotation vector
+	m_vRotation.x += xRotation;
+	m_vRotation.y += yRotation;
 
-	//roll
-	//m_qZ = glm::angleAxis(0.0f, AXIS_Z);
-	
-	//Getting the new orientation
-	m_qOrientation = m_qX * m_qY;
+	glm::clamp(xRotation, -.5f * (float)PI, .5f * (float)PI);
 }
 
 matrix4 Simplex::MyCamera::GetProjectionMatrix(void) { return m_m4Projection; }
 
-vector3 Simplex::MyCamera::RotateTarget(vector3 target)
-{
-	//Target as a quat
-	quaternion targetQuat = quaternion(1.0f, target.x, target.y, target.z);
-
-	//Inverse of our orientation
-	quaternion inverseOrientation = quaternion(m_qOrientation.w, -m_qOrientation.x, -m_qOrientation.y, -m_qOrientation.z);
-
-	//Cross product
-	quaternion result = targetQuat * inverseOrientation;
-
-	result = result * m_qOrientation;
-
-	return vector3(result.x, result.y, result.z);
-}
+//vector3 Simplex::MyCamera::RotateTarget(vector3 target)
+//{
+//	//Target as a quat
+//	quaternion targetQuat = quaternion(1.0f, target.x, target.y, target.z);
+//
+//	//Inverse of our orientation
+//	quaternion inverseOrientation = quaternion(m_qOrientation.w, -m_qOrientation.x, -m_qOrientation.y, -m_qOrientation.z);
+//
+//	//Cross product
+//	quaternion result = targetQuat * inverseOrientation;
+//
+//	result = result * m_qOrientation;
+//
+//	return vector3(result.x, result.y, result.z);
+//}
 
 matrix4 Simplex::MyCamera::GetViewMatrix(void) { CalculateViewMatrix(); return m_m4View; }
 
@@ -189,8 +181,11 @@ void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v
 
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
-	//Calculate the look at
-	m_m4View = glm::lookAt(m_v3Position, RotateTarget(m_v3Target), m_v3Up) * glm::toMat4(m_qOrientation);
+	//Calculate the center of the camera
+	center = m_v3Position + glm::mat3(glm::yawPitchRoll(m_vRotation.y, m_vRotation.x, m_vRotation.z)) * vector3(0.0f, 0.0f, 1.0f);
+
+	//Calculate look at
+	m_m4View = glm::lookAt(m_v3Position, center, glm::mat3(glm::yawPitchRoll(m_vRotation.y, m_vRotation.x, m_vRotation.z)) * vector3(0.0f, 1.0f, 0.0f));
 
 	/*std::cout << "Position (x,y,z): " << m_v3Position.x << " " << m_v3Position.y << " " << m_v3Position.z << std::endl;
 	std::cout << "Target (x,y,z): " <<  m_v3Target.x << " " << m_v3Target.y << " " << m_v3Target.z << std::endl;*/

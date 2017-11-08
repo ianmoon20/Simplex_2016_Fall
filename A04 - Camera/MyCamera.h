@@ -16,10 +16,8 @@ class MyCamera
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
-	quaternion m_qX = quaternion();
-	quaternion m_qY = quaternion();
-	quaternion m_qZ = quaternion();
-	quaternion m_qOrientation = quaternion();
+	vector3 m_vRotation;
+	vector3 center;
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -186,9 +184,6 @@ public:
 	OUTPUT: projection matrix of the camera
 	*/
 	matrix4 GetProjectionMatrix(void);
-
-	//Method for rotating the target
-	vector3 RotateTarget(vector3 target);
 
 	/*
 	USAGE: Gets the view matrix of the camera
