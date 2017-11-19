@@ -287,6 +287,15 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
+	//List of variables given to be used:
+	//m_v3HalfWidth
+	//
+
+	float ra, rb;
+	glm::mat3 R, absR;
+
+
+
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
 }
