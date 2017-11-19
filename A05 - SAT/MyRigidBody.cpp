@@ -287,12 +287,24 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
-	//List of variables given to be used:
-	//m_v3HalfWidth
+	//List of variables needed:
+	//Half widths
+	//Local Axis
 	//
 
-	float ra, rb;
 	glm::mat3 R, absR;
+	
+	//Populate the R matrix
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			//Cross the axis of the two objects and store it in the R matrix
+			R[i][j] = glm::dot(AXIS_X, a_pOther.)
+		}
+	}
+
+
 
 
 
