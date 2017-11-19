@@ -85,8 +85,6 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	//Assign the model matrix
 	m_m4ToWorld = a_m4ModelMatrix;
 
-	//Calculate the 8 corners of the cube
-	vector3 v3Corner[8];
 	//Back square
 	v3Corner[0] = m_v3MinL;
 	v3Corner[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
@@ -245,7 +243,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	{
 		this->RemoveCollisionWith(a_pOther);
 		a_pOther->RemoveCollisionWith(this);
-	}
+	}  
 
 	return bColliding;
 }
