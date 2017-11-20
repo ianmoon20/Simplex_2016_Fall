@@ -4,9 +4,9 @@ using namespace Simplex;
 void MyRigidBody::Init(void)
 {
 	m_pMeshMngr = MeshManager::GetInstance();
-	m_bVisibleBS = false;
+	m_bVisibleBS = true;
 	m_bVisibleOBB = true;
-	m_bVisibleARBB = false;
+	m_bVisibleARBB = true;
 
 	m_fRadius = 0.0f;
 
@@ -64,6 +64,7 @@ void MyRigidBody::SetVisibleOBB(bool a_bVisible) { m_bVisibleOBB = a_bVisible; }
 bool MyRigidBody::GetVisibleARBB(void) { return m_bVisibleARBB; }
 void MyRigidBody::SetVisibleARBB(bool a_bVisible) { m_bVisibleARBB = a_bVisible; }
 float MyRigidBody::GetRadius(void) { return m_fRadius; }
+
 vector3 MyRigidBody::GetColorColliding(void) { return m_v3ColorColliding; }
 vector3 MyRigidBody::GetColorNotColliding(void) { return m_v3ColorNotColliding; }
 void MyRigidBody::SetColorColliding(vector3 a_v3Color) { m_v3ColorColliding = a_v3Color; }
@@ -122,6 +123,7 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
 }
+
 //The big 3
 MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList)
 {
@@ -288,23 +290,144 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	//List of variables needed:
 	//Half widths
 	//Local Axis
-	//
 
-	glm::mat3 R, absR;
-	
-	//Populate the R matrix
+	vector3 halfWidthOther = a_pOther->GetHalfWidth();
+	float halfWidthSum, halfWidthSumOther;
+	matrix3 R, absR;
+
+	matrix4 otherModelMatrix = a_pOther->GetModelMatrix();
+
+	vector3 localAxis[3];
+	localAxis[0] = vector3(m_m4ToWorld * vector4(AXIS_X, 0.0f));
+	localAxis[1] = vector3(m_m4ToWorld * vector4(AXIS_Y, 0.0f));
+	localAxis[2] = vector3(m_m4ToWorld * vector4(AXIS_Z, 0.0f));
+
+	vector3 localAxisOther[3];
+	localAxisOther[0] = vector3(otherModelMatrix * vector4(AXIS_X, 0.0f));
+	localAxisOther[1] = vector3(otherModelMatrix * vector4(AXIS_Y, 0.0f));
+	localAxisOther[2] = vector3(otherModelMatrix * vector4(AXIS_Z, 0.0f));
+
+	//Testing SAT, finally
+
+	//Computing rotation
 	for (int i = 0; i < 3; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			//Cross the axis of the two objects and store it in the R matrix
-			R[i][j] = glm::dot(AXIS_X, a_pOther.)
+			R[i][j] = glm::dot(localAxis[i], localAxisOther[j]);
 		}
 	}
 
+	//Getting the translation
+	vector3 distanceCenter = a_pOther->GetCenterGlobal() - GetCenterGlobal(); //m_v3Center;
 
+	//bringing the translation into a's frame
+	distanceCenter = vector3(glm::dot(distanceCenter, localAxis[0]), glm::dot(distanceCenter, localAxis[1]), glm::dot(distanceCenter, localAxis[2]));
 
+	//Getting common subexpressions
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			absR[i][j] = glm::abs(R[i][j]) + FLT_EPSILON;
+		}
+	}
 
+	//Testing axes L = A0, L = A1, L = A2
+	for (int i = 0; i < 3; i++)
+	{
+		halfWidthSum = m_v3HalfWidth[i];
+		halfWidthSumOther = halfWidthOther[0] * absR[i][0] + halfWidthOther[1] * absR[i][1] + halfWidthOther[2] * absR[i][2];
+
+		if (glm::abs(distanceCenter[i]) > halfWidthSum + halfWidthSumOther)
+		{
+			return 1;
+		}
+	}
+
+	//Testing axes L = B0, L = B1, L = B2
+	for (int i = 0; i < 3; i++)
+	{
+		halfWidthSum = m_v3HalfWidth[0] * absR[0][i] + m_v3HalfWidth[1] * absR[1][i] + m_v3HalfWidth[2] * absR[2][i];
+		halfWidthSumOther = halfWidthOther[i];
+
+		if (glm::abs(distanceCenter[0] * absR[0][i] + distanceCenter[1] * absR[1][i] + distanceCenter[2] * absR[2][i]) > halfWidthSum + halfWidthSumOther)
+		{
+			return 1;
+		}
+	}
+
+	//Testing axes L = A0 x B0
+	halfWidthSum = m_v3HalfWidth[1] * absR[2][0] + m_v3HalfWidth[2] * absR[1][0];
+	halfWidthSumOther = halfWidthOther[1] * absR[0][2] + halfWidthOther[2] * absR[0][1];
+	if (glm::abs(distanceCenter[2] * R[1][0] - distanceCenter[1] * R[2][0]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A0 x B1
+	halfWidthSum = m_v3HalfWidth[1] * absR[2][1] + m_v3HalfWidth[2] * absR[1][1];
+	halfWidthSumOther = halfWidthOther[0] * absR[0][2] + halfWidthOther[2] * absR[0][0];
+	if (glm::abs(distanceCenter[2] * R[1][1] - distanceCenter[1] * R[2][1]) > halfWidthSum + halfWidthSumOther)
+	{	
+		return 1;
+	}
+
+	//Testing axes L = A0 x B2
+	halfWidthSum = m_v3HalfWidth[1] * absR[2][2] + m_v3HalfWidth[2] * absR[1][2];
+	halfWidthSumOther = halfWidthOther[0] * absR[0][1] + halfWidthOther[1] * absR[0][0];
+	if (glm::abs(distanceCenter[2] * R[1][2] - distanceCenter[1] * R[2][2]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A1 x B0
+	halfWidthSum = m_v3HalfWidth[0] * absR[2][0] + m_v3HalfWidth[2] * absR[0][0];
+	halfWidthSumOther = halfWidthOther[1] * absR[1][2] + halfWidthOther[2] * absR[1][1];
+	if (glm::abs(distanceCenter[0] * R[2][0] - distanceCenter[2] * R[0][0]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A1 x B1
+	halfWidthSum = m_v3HalfWidth[0] * absR[2][1] + m_v3HalfWidth[2] * absR[0][1];
+	halfWidthSumOther = halfWidthOther[0] * absR[1][2] + halfWidthOther[2] * absR[1][0];
+	if (glm::abs(distanceCenter[0] * R[2][1] - distanceCenter[2] * R[0][1]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A1 x B2
+	halfWidthSum = m_v3HalfWidth[0] * absR[2][2] + m_v3HalfWidth[2] * absR[0][2];
+	halfWidthSumOther = halfWidthOther[0] * absR[1][1] + halfWidthOther[1] * absR[1][0];
+	if (glm::abs(distanceCenter[0] * R[2][2] - distanceCenter[2] * R[0][2]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A2 x B0
+	halfWidthSum = m_v3HalfWidth[0] * absR[1][0] + m_v3HalfWidth[1] * absR[0][0];
+	halfWidthSumOther = halfWidthOther[1] * absR[2][2] + halfWidthOther[2] * absR[2][1];
+	if (glm::abs(distanceCenter[1] * R[0][0] - distanceCenter[0] * R[1][0]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A2 x B1
+	halfWidthSum = m_v3HalfWidth[0] * absR[1][1] + m_v3HalfWidth[1] * absR[0][1];
+	halfWidthSumOther = halfWidthOther[0] * absR[2][2] + halfWidthOther[2] * absR[2][0];
+	if (glm::abs(distanceCenter[1] * R[0][1] - distanceCenter[0] * R[1][1]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
+
+	//Testing axes L = A2 x B2
+	halfWidthSum = m_v3HalfWidth[0] * absR[1][2] + m_v3HalfWidth[1] * absR[0][2];
+	halfWidthSumOther = halfWidthOther[0] * absR[2][1] + halfWidthOther[1] * absR[2][0];
+	if (glm::abs(distanceCenter[1] * R[0][2] - distanceCenter[0] * R[1][2]) > halfWidthSum + halfWidthSumOther)
+	{
+		return 1;
+	}
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
